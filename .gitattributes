@@ -1,3 +1,4 @@
+*.onnx filter=lfs diff=lfs merge=lfs -text
 /data/dl.root filter=lfs diff=lfs merge=lfs -text
 /models/predict_quantiles3D_DL_v4/model.onnx filter=lfs diff=lfs merge=lfs -text
 /models/predict_quantiles3D_DL_v8/predict_quantiles3D_DL_v8_even.onnx filter=lfs diff=lfs merge=lfs -text
