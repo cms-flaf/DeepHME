@@ -5,4 +5,8 @@
 /models/predict_quantiles3D_DL_v8/predict_quantiles3D_DL_v8_odd.onnx filter=lfs diff=lfs merge=lfs -text
 /models/predict_quantiles3D_SL_v3/predict_quantiles3D_SL_v3_even.onnx filter=lfs diff=lfs merge=lfs -text
 /models/predict_quantiles3D_SL_v3/predict_quantiles3D_SL_v3_odd.onnx filter=lfs diff=lfs merge=lfs -text
+/src/DeepHME/models/predict_quantiles3D_DL_v8/predict_quantiles3D_DL_v8_even.onnx filter=lfs diff=lfs merge=lfs -text
+/src/DeepHME/models/predict_quantiles3D_DL_v8/predict_quantiles3D_DL_v8_odd.onnx filter=lfs diff=lfs merge=lfs -text
+/src/DeepHME/models/predict_quantiles3D_SL_v3/predict_quantiles3D_SL_v3_even.onnx filter=lfs diff=lfs merge=lfs -text
+/src/DeepHME/models/predict_quantiles3D_SL_v3/predict_quantiles3D_SL_v3_odd.onnx filter=lfs diff=lfs merge=lfs -text
 *.root filter=lfs diff=lfs merge=lfs -text
