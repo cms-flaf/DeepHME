@@ -395,8 +395,8 @@ class DeepHME:
                     if self._use_energy_layer:
                         central_even = np.delete(central_even, [3, 7], axis=1)
                         central_odd = np.delete(central_odd, [3, 7], axis=1)
-                    errors_even = self._ep_odd.propagate(p4_errors_even, central_even)
-                    errors_odd = self._ep_even.propagate(p4_errors_odd, central_odd)
+                    errors_even = self._ep_even.propagate(p4_errors_even, central_even) if len(p4_errors_even) > 0 else np.array([])
+                    errors_odd = self._ep_odd.propagate(p4_errors_odd, central_odd) if len(p4_errors_even) > 0 else np.array([])
                     mass_errors = np.full(len(df), -1)
                     mass_errors[mask] = errors_even
                     mass_errors[~mask] = errors_odd
