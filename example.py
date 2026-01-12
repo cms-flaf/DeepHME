@@ -3,7 +3,7 @@ import awkward as ak
 import matplotlib.pyplot as plt
 import numpy as np
 
-from DeepHME import DeepHME
+from src.DeepHME import DeepHME
 
 def main():
     ch = 'DL'
@@ -16,11 +16,14 @@ def main():
                         'SelectedFatJet_particleNet_QCD', 'SelectedFatJet_particleNet_XbbVsQCD', 'SelectedFatJet_particleNetWithMass_QCD', 'SelectedFatJet_particleNetWithMass_HbbvsQCD', 'SelectedFatJet_particleNet_massCorr',
                         'lep1_pt', 'lep1_eta', 'lep1_phi', 'lep1_mass',
                         'lep2_pt', 'lep2_eta', 'lep2_phi', 'lep2_mass',
-                        'met_pt', 'met_phi',
+                        'PuppiMET_pt', 'PuppiMET_phi',
                         'event']
     branches = tree.arrays(branches_to_load)
     
-    estimator = DeepHME(model_name='predict_quantiles3D_DL_v8', channel=ch, return_errors=True)
+    estimator = DeepHME(model_name='predict_quantiles3D_DL_v8', 
+                        channel=ch, 
+                        return_errors=True,
+                        met_name='PuppiMET')
     mass, errors = estimator.predict(event_id=branches['event'],
                                     lep1_pt=branches['lep1_pt'], 
                                     lep1_eta=branches['lep1_eta'], 
@@ -30,8 +33,8 @@ def main():
                                     lep2_eta=branches['lep2_eta'], 
                                     lep2_phi=branches['lep2_phi'], 
                                     lep2_mass=branches['lep2_mass'],
-                                    met_pt=branches['met_pt'], 
-                                    met_phi=branches['met_phi'],
+                                    met_pt=branches['PuppiMET_pt'], 
+                                    met_phi=branches['PuppiMET_phi'],
                                     jet_pt=branches['centralJet_pt'], 
                                     jet_eta=branches['centralJet_eta'], 
                                     jet_phi=branches['centralJet_phi'], 
