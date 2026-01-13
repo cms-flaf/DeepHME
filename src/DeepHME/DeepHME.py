@@ -21,7 +21,8 @@ class DeepHME:
     def __init__(self, 
                  model_name=None,
                  return_errors=False,
-                 channel='DL'):
+                 channel='DL',
+                 met_name='PuppiMET'):
 
         if model_name is None:
             raise ValueError('Must provide name of the model to use. Available models can be found in `models` directory.')
@@ -43,6 +44,7 @@ class DeepHME:
             raise ValueError(f'Channel `{channel}` is not supported, options are `SL`, `DL`.')
 
         self._channel = channel
+        self._met_name = met_name
         
         self._train_cfg_odd = self._load_cfg(f'{model_name}_odd')
         self._train_cfg_even = self._load_cfg(f'{model_name}_even')
@@ -328,7 +330,7 @@ class DeepHME:
                            'SelectedFatJet': fatjet_features,
                            'lep1': lep1_features,
                            'lep2': lep2_features,
-                           'met': met_features}
+                           self._met_name: met_features}
         if self._channel == 'SL':
             object_features.pop('lep2')
         df = self._concat_inputs(event_id, object_features)
