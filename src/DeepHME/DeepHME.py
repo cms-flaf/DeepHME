@@ -49,6 +49,9 @@ class DeepHME:
         self._train_cfg_odd = self._load_cfg(f'{model_name}_odd')
         self._train_cfg_even = self._load_cfg(f'{model_name}_even')
 
+        self._used_pnet_scores = self._get_pnet_scores()
+        self._mandatory_features = ['pt', 'eta', 'phi', 'mass', 'id']
+
         feature_map_odd, object_count_odd = self._gather_feature_info(self._train_cfg_odd['input_names'])
         feature_map_even, object_count_even = self._gather_feature_info(self._train_cfg_even['input_names'])
         assert feature_map_even == feature_map_odd and object_count_odd == object_count_even, 'Config mismatch between even and odd models'
@@ -137,6 +140,20 @@ class DeepHME:
         x_mass = np.where(neg_mass, -1.0, x_mass)
         return x_mass
 
+    def _get_pnet_scores(self):
+        """
+            helper function finding which pnet scores were used in inputs
+        """
+        input_names_even = self._train_cfg_even['input_names']
+        input_names_odd = self._train_cfg_odd['input_names']
+
+        if set(input_names_even) != set(input_names_odd):
+            raise RuntimeError('Incompatible inputs for even and odd models')
+
+        # exoected feature format is object_id_variable
+        pnet_scores = [feature.split('_')[-1] for feature in input_names_even if 'PNet' in feature]
+        return pnet_scores
+
     def _gather_feature_info(self, names):
         """
             returns two dicts: object -> list of feature names of that object, object -> number of objects of that type
@@ -159,8 +176,10 @@ class DeepHME:
         return x_padded
 
     def _validate_arguments(self, args):
+        # expected argument format is object_variable
         for arg, val in args.items():
-            if val is None:
+            var = arg.split('_')[-1]
+            if val is None and (var in self._mandatory_features or var in self._used_pnet_scores):
                 raise ValueError(f'Argument `{arg}` has illegal value `None`')
 
     def _concat_inputs(self, event_id, feature_values):
@@ -244,23 +263,49 @@ class DeepHME:
         jet_eta = self._add_padding(jet_eta, num_jet)
         jet_phi = self._add_padding(jet_phi, num_jet)
         jet_mass = self._add_padding(jet_mass, num_jet)
-        jet_btagPNetB = self._add_padding(jet_btagPNetB, num_jet)
-        jet_btagPNetCvB = self._add_padding(jet_btagPNetCvB, num_jet)
-        jet_btagPNetCvL = self._add_padding(jet_btagPNetCvL, num_jet)
-        jet_btagPNetCvNotB = self._add_padding(jet_btagPNetCvNotB, num_jet)
-        jet_btagPNetQvG = self._add_padding(jet_btagPNetQvG, num_jet)
-        jet_PNetRegPtRawCorr = self._add_padding(jet_PNetRegPtRawCorr, num_jet)
-        jet_PNetRegPtRawCorrNeutrino = self._add_padding(jet_PNetRegPtRawCorrNeutrino, num_jet)
-        jet_PNetRegPtRawRes = self._add_padding(jet_PNetRegPtRawRes, num_jet)
+        if jet_btagPNetB is not None:
+            jet_btagPNetB = self._add_padding(jet_btagPNetB, num_jet)
+            jet_btagPNetB = jet_btagPNetB[:, :num_jet]
+        if jet_btagPNetCvB is not None:
+            jet_btagPNetCvB = self._add_padding(jet_btagPNetCvB, num_jet)
+            jet_btagPNetCvB = jet_btagPNetCvB[:, :num_jet]
+        if jet_btagPNetCvL is not None:
+            jet_btagPNetCvL = self._add_padding(jet_btagPNetCvL, num_jet)
+            jet_btagPNetCvL = jet_btagPNetCvL[:, :num_jet]
+        if jet_btagPNetCvNotB is not None:
+            jet_btagPNetCvNotB = self._add_padding(jet_btagPNetCvNotB, num_jet)
+            jet_btagPNetCvNotB = jet_btagPNetCvNotB[:, :num_jet]
+        if jet_btagPNetQvG is not None:
+            jet_btagPNetQvG = self._add_padding(jet_btagPNetQvG, num_jet)
+            jet_btagPNetQvG = jet_btagPNetQvG[:, :num_jet]
+        if jet_PNetRegPtRawCorr is not None:
+            jet_PNetRegPtRawCorr = self._add_padding(jet_PNetRegPtRawCorr, num_jet)
+            jet_PNetRegPtRawCorr = jet_PNetRegPtRawCorr[:, :num_jet]
+        if jet_PNetRegPtRawCorrNeutrino is not None:
+            jet_PNetRegPtRawCorrNeutrino = self._add_padding(jet_PNetRegPtRawCorrNeutrino, num_jet)
+            jet_PNetRegPtRawCorrNeutrino = jet_PNetRegPtRawCorrNeutrino[:, :num_jet]
+        if jet_PNetRegPtRawRes is not None:
+            jet_PNetRegPtRawRes = self._add_padding(jet_PNetRegPtRawRes, num_jet)
+            jet_PNetRegPtRawRes = jet_PNetRegPtRawRes[:, :num_jet]
         fatjet_pt = self._add_padding(fatjet_pt, num_fatjet)
         fatjet_eta = self._add_padding(fatjet_eta, num_fatjet)
         fatjet_phi = self._add_padding(fatjet_phi, num_fatjet)
         fatjet_mass = self._add_padding(fatjet_mass, num_fatjet)
-        fatjet_particleNet_QCD = self._add_padding(fatjet_particleNet_QCD, num_fatjet)
-        fatjet_particleNet_XbbVsQCD = self._add_padding(fatjet_particleNet_XbbVsQCD, num_fatjet)
-        fatjet_particleNetWithMass_QCD = self._add_padding(fatjet_particleNetWithMass_QCD, num_fatjet)
-        fatjet_particleNetWithMass_HbbvsQCD = self._add_padding(fatjet_particleNetWithMass_HbbvsQCD, num_fatjet)
-        fatjet_particleNet_massCorr = self._add_padding(fatjet_particleNet_massCorr, num_fatjet)
+        if fatjet_particleNet_QCD is not None:
+            fatjet_particleNet_QCD = self._add_padding(fatjet_particleNet_QCD, num_fatjet)
+            fatjet_particleNet_QCD = fatjet_particleNet_QCD[:, :num_fatjet]
+        if fatjet_particleNet_XbbVsQCD is not None:
+            fatjet_particleNet_XbbVsQCD = self._add_padding(fatjet_particleNet_XbbVsQCD, num_fatjet)
+            fatjet_particleNet_XbbVsQCD = fatjet_particleNet_XbbVsQCD[:, :num_fatjet]
+        if fatjet_particleNetWithMass_QCD is not None:
+            fatjet_particleNetWithMass_QCD = self._add_padding(fatjet_particleNetWithMass_QCD, num_fatjet)
+            fatjet_particleNetWithMass_QCD = fatjet_particleNetWithMass_QCD[:, :num_fatjet]
+        if fatjet_particleNetWithMass_HbbvsQCD is not None:
+            fatjet_particleNetWithMass_HbbvsQCD = self._add_padding(fatjet_particleNetWithMass_HbbvsQCD, num_fatjet)
+            fatjet_particleNetWithMass_HbbvsQCD = fatjet_particleNetWithMass_HbbvsQCD[:, :num_fatjet]
+        if fatjet_particleNet_massCorr is not None:
+            fatjet_particleNet_massCorr = self._add_padding(fatjet_particleNet_massCorr, num_fatjet)
+            fatjet_particleNet_massCorr = fatjet_particleNet_massCorr[:, :num_fatjet]
 
         lep1_p4 = vector.zip({'pt': lep1_pt, 'eta': lep1_eta, 'phi': lep1_phi, 'mass': lep1_mass})
         lep2_p4 = None
@@ -273,43 +318,41 @@ class DeepHME:
         jet_p4 = jet_p4[:, :num_jet]
         fatjet_p4 = fatjet_p4[:, :num_fatjet]
 
-        jet_btagPNetB = jet_btagPNetB[:, :num_jet]
-        jet_btagPNetCvB = jet_btagPNetCvB[:, :num_jet]
-        jet_btagPNetCvL = jet_btagPNetCvL[:, :num_jet]
-        jet_btagPNetCvNotB = jet_btagPNetCvNotB[:, :num_jet]
-        jet_btagPNetQvG = jet_btagPNetQvG[:, :num_jet]
-        jet_PNetRegPtRawCorr = jet_PNetRegPtRawCorr[:, :num_jet]
-        jet_PNetRegPtRawCorrNeutrino = jet_PNetRegPtRawCorrNeutrino[:, :num_jet]
-        jet_PNetRegPtRawRes = jet_PNetRegPtRawRes[:, :num_jet]        
-
-        fatjet_particleNet_QCD = fatjet_particleNet_QCD[:, :num_fatjet]
-        fatjet_particleNet_XbbVsQCD = fatjet_particleNet_XbbVsQCD[:, :num_fatjet]
-        fatjet_particleNetWithMass_QCD = fatjet_particleNetWithMass_QCD[:, :num_fatjet]
-        fatjet_particleNetWithMass_HbbvsQCD = fatjet_particleNetWithMass_HbbvsQCD[:, :num_fatjet]
-        fatjet_particleNet_massCorr = fatjet_particleNet_massCorr[:, :num_fatjet]
-
         jet_features = {'px': jet_p4.px,
                         'py': jet_p4.py,
                         'pz': jet_p4.pz, 
-                        'E': jet_p4.E,
-                        'btagPNetB': jet_btagPNetB,
-                        'btagPNetCvB': jet_btagPNetCvB,
-                        'btagPNetCvL': jet_btagPNetCvL,
-                        'btagPNetCvNotB': jet_btagPNetCvNotB,
-                        'btagPNetQvG': jet_btagPNetQvG,
-                        'PNetRegPtRawCorr': jet_PNetRegPtRawCorr,
-                        'PNetRegPtRawCorrNeutrino': jet_PNetRegPtRawCorrNeutrino,
-                        'PNetRegPtRawRes': jet_PNetRegPtRawRes }
+                        'E': jet_p4.E}
+        if jet_btagPNetB is not None:
+            jet_features['btagPNetB'] = jet_btagPNetB
+        if jet_btagPNetCvB is not None:
+            jet_features['btagPNetCvB'] = jet_btagPNetCvB
+        if jet_btagPNetCvL is not None:
+            jet_features['btagPNetCvL'] = jet_btagPNetCvL
+        if jet_btagPNetCvNotB is not None:
+            jet_features['btagPNetCvNotB'] = jet_btagPNetCvNotB
+        if jet_btagPNetQvG is not None:
+            jet_features['btagPNetQvG'] = jet_btagPNetQvG
+        if jet_PNetRegPtRawCorr is not None:
+            jet_features['PNetRegPtRawCorr'] = jet_PNetRegPtRawCorr
+        if jet_PNetRegPtRawCorrNeutrino is not None:
+            jet_features['PNetRegPtRawCorrNeutrino'] = jet_PNetRegPtRawCorrNeutrino
+        if jet_PNetRegPtRawRes is not None:
+            jet_features['PNetRegPtRawRes'] = jet_PNetRegPtRawRes
         
         fatjet_features = {'px': fatjet_p4.px,
                            'py': fatjet_p4.py,
                            'pz': fatjet_p4.pz, 
-                           'E': fatjet_p4.E,
-                           'particleNet_QCD': fatjet_particleNet_QCD,
-                           'particleNet_XbbVsQCD': fatjet_particleNet_XbbVsQCD,
-                           'particleNetWithMass_QCD': fatjet_particleNetWithMass_QCD,
-                           'particleNetWithMass_HbbvsQCD': fatjet_particleNetWithMass_HbbvsQCD,
-                           'particleNet_massCorr': fatjet_particleNet_massCorr }
+                           'E': fatjet_p4.E}
+        if fatjet_particleNet_QCD is not None:
+            fatjet_features['particleNet_QCD'] = fatjet_particleNet_QCD
+        if fatjet_particleNet_XbbVsQCD is not None:
+            fatjet_features['particleNet_XbbVsQCD'] = fatjet_particleNet_XbbVsQCD
+        if fatjet_particleNetWithMass_QCD is not None:
+            fatjet_features['particleNetWithMass_QCD'] = fatjet_particleNetWithMass_QCD
+        if fatjet_particleNetWithMass_HbbvsQCD is not None:
+            fatjet_features['particleNetWithMass_HbbvsQCD'] = fatjet_particleNetWithMass_HbbvsQCD
+        if fatjet_particleNet_massCorr is not None:
+            fatjet_features['particleNet_massCorr'] = fatjet_particleNet_massCorr
 
         lep1_features = {'px': lep1_p4.px,
                          'py': lep1_p4.py,
