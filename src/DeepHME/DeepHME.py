@@ -59,8 +59,10 @@ class DeepHME:
 
         # even model trained on events with even ids => apply it to odds
         # odd model trained on events with odd ids => apply it to even
-        self._session_even = ort.InferenceSession(str(even_path))
-        self._session_odd = ort.InferenceSession(str(odd_path))
+        so = ort.SessionOptions()
+        so.enable_cpu_mem_arena = False  # the arena keeps a whole-chunk batch per session: ~16 GB peak
+        self._session_even = ort.InferenceSession(str(even_path), so)
+        self._session_odd = ort.InferenceSession(str(odd_path), so)
         input_name_odd = self._session_odd.get_inputs()[0].name
         input_name_even = self._session_even.get_inputs()[0].name
         assert input_name_even == input_name_odd, 'Input names mismatch between even and odd models'
