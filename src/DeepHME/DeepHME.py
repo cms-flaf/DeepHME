@@ -17,12 +17,15 @@ class DeepHME:
                     and .yaml files with parameters used for training of the even and odd models. Even model was trained on events with even ids,
                     odd - on events with odd ids. 
         channel: string specifyning channel. Options are `SL` and `DL`. Must be capital.
+        session_options: `onnxruntime.SessionOptions` of both models, e.g. with one thread, so that the outputs do not depend on
+                         the core count of the host. Defaults to the onnxruntime defaults. The CPU memory arena is turned off on them.
     """
     def __init__(self, 
                  model_name=None,
                  return_errors=False,
                  channel='DL',
-                 met_name='PuppiMET'):
+                 met_name='PuppiMET',
+                 session_options=None):
 
         if model_name is None:
             raise ValueError('Must provide name of the model to use. Available models can be found in `models` directory.')
@@ -59,7 +62,7 @@ class DeepHME:
 
         # even model trained on events with even ids => apply it to odds
         # odd model trained on events with odd ids => apply it to even
-        so = ort.SessionOptions()
+        so = ort.SessionOptions() if session_options is None else session_options
         so.enable_cpu_mem_arena = False  # the arena keeps a whole-chunk batch per session: ~16 GB peak
         self._session_even = ort.InferenceSession(str(even_path), so)
         self._session_odd = ort.InferenceSession(str(odd_path), so)
